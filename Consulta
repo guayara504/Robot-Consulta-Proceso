@@ -19,9 +19,9 @@ demora = 3
 fnametemp = "temp_" + time.strftime("%d%m%Y%H%M%S") + ".xls"
 
 navegador=input("Seleccione el Navegador:\n1. Firefox\n2. Chrome\n3.Phantom\nEscoja una opcion: ")
-excelFile=input("Ingrese el archivo de Excel: ")
-inicioBusqueda=input("Donde comenzará la busqueda en la pagina: \n1.Inicio\n2.Final")
-filaExcel=input("En que fila comenzará a introducir datos: ")
+excelFile=input("\nIngrese el archivo de Excel: ")
+inicioBusqueda=input("\n1.Inicio\n2.Final\nDonde comenzará la busqueda en la pagina: ")
+filaExcel=input("\nEn que fila comenzará a introducir datos: ")
 
 
 
@@ -36,7 +36,7 @@ class extractor(object):
         elif navegador == "2":
             #path_to_chromedriver = ('./chromedriver')
             #self.driver = webdriver.Chrome(executable_path=r"chromedriver.exe")
-            ser = Service("C:\\chromedriver.exe")
+            ser = Service("C:\\Users\\Guayara\\Desktop\\Extractor")
             op = webdriver.ChromeOptions()
             self.driver= webdriver.Chrome(service=ser, options=op)
         elif navegador == "3":
@@ -329,7 +329,7 @@ if __name__ == "__main__":
         fila_inicio = 1
     else:
         fila_inicio = int(filaExcel)
-    if (inicioBusqueda == 1) or (inicioBusqueda == 2):
+    if (inicioBusqueda == "1") or (inicioBusqueda == "2"):
         # si los parametros corresponden entonces proceder con el programa
         pathlog = './'
         log_errors = open(pathlog + 'log_errors.txt', mode='w')
