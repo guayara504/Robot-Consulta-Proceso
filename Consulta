@@ -12,12 +12,17 @@ from selenium.common.exceptions import TimeoutException, ElementNotVisibleExcept
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.chrome.service import Service
+
 
 demora = 3
 fnametemp = "temp_" + time.strftime("%d%m%Y%H%M%S") + ".xls"
 
 navegador=input("Seleccione el Navegador:\n1. Firefox\n2. Chrome\n3.Phantom\nEscoja una opcion: ")
 excelFile=input("Ingrese el archivo de Excel: ")
+inicioBusqueda=input("Donde comenzará la busqueda en la pagina: \n1.Inicio\n2.Final")
+filaExcel=input("En que fila comenzará a introducir datos: ")
+
 
 
 class extractor(object):
@@ -30,7 +35,10 @@ class extractor(object):
             self.driver = webdriver.Firefox()
         elif navegador == "2":
             #path_to_chromedriver = ('./chromedriver')
-            self.driver = webdriver.Chrome(executable_path=r"chromedriver.exe")
+            #self.driver = webdriver.Chrome(executable_path=r"chromedriver.exe")
+            ser = Service("C:\\chromedriver.exe")
+            op = webdriver.ChromeOptions()
+            self.driver= webdriver.Chrome(service=ser, options=op)
         elif navegador == "3":
             self.driver = webdriver.PhantomJS('phantomjs.exe')
         self.driver.wait = WebDriverWait(self.driver, self.delay)
@@ -205,7 +213,7 @@ def WaitForElement(self, path):
             return 1
         except:
             time.sleep(inc)
-            c = c + inc
+            c+=inc
     return 0
 
 def exists_by_xpath(driver, xpath):
@@ -279,7 +287,8 @@ def escribir_xls(datosPro, actosPro):
     wb.sheet_by_name('INPUT').row += i
     wb.sheet_by_name('DATOS DEL PROCESO').row += datosPro
     for dats in actosPro:
-        if "final" == "final":
+        #Si la busqueda comienza desde abajo(final)
+        if inicioBusqueda == 2:
             fecha_str = dats[6]
             if dife_fecha(fecha_str).days <= 4:
                 # comprobar el numero de dias para poder guardar el dato
@@ -316,11 +325,11 @@ if __name__ == "__main__":
         print("Revisar la existencia del archivo de datos: " + excelFile)
         msvcrt.getch()
         sys.exit(1)
-   # if (int(sys.argv[4]) <= 0):
-    #    fila_inicio = 1
-    #else:
-     #   fila_inicio = int(sys.argv[4])
-    if  "final" == "final":
+    if (int(filaExcel) <= 0):
+        fila_inicio = 1
+    else:
+        fila_inicio = int(filaExcel)
+    if (inicioBusqueda == 1) or (inicioBusqueda == 2):
         # si los parametros corresponden entonces proceder con el programa
         pathlog = './'
         log_errors = open(pathlog + 'log_errors.txt', mode='w')
@@ -330,7 +339,7 @@ if __name__ == "__main__":
 
         t0 = time.time()
         # extraer los datos del archivo de entrada
-        my_array = pyexcel.get_array(file_name=excelFile, start_row=1)
+        my_array = pyexcel.get_array(file_name=excelFile, start_row=fila_inicio)
         # crear el archivo de output.xlsx
         wout = xlwt.Workbook()
         crear_xls(wout)
@@ -362,3 +371,7 @@ if __name__ == "__main__":
         terminar()
         t1 = time.time() - t0
         print("\ntiempo transcurrido %.2f s" % (t1))
+    else:
+        print("Usar\n1.Inicio = para correr sin condicional de dias\n2.Final para condicional de dias")
+        msvcrt.getch()
+        sys.exit(1)
