@@ -36,9 +36,11 @@ class extractor(object):
         elif navegador == "2":
             #path_to_chromedriver = ('./chromedriver')
             #self.driver = webdriver.Chrome(executable_path=r"chromedriver.exe")
-            ser = Service("C:\\Users\\Guayara\\Desktop\\Extractor")
+            ser = Service("C:\\Users\\Guayara\\Desktop\\Extractor\\chromedriver.exe")
             op = webdriver.ChromeOptions()
+            op.add_experimental_option('excludeSwitches', ['enable-logging'])
             self.driver= webdriver.Chrome(service=ser, options=op)
+            self.driver.get('https://something.com/login')
         elif navegador == "3":
             self.driver = webdriver.PhantomJS('phantomjs.exe')
         self.driver.wait = WebDriverWait(self.driver, self.delay)
