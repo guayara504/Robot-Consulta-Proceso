@@ -17,28 +17,32 @@ from selenium.webdriver.common.by import By
 
 
 demora = 3
+#Nombre asignado al excel temporal en ejecucion
 fnametemp = "temp_" + time.strftime("%d%m%Y%H%M%S") + ".xls"
 
+#Datos de entrada para el programa
+
+#Escoger el navegador para usar con WebDriver
 navegador=input("Seleccione el Navegador:\n1. Firefox\n2. Chrome\n3.Phantom\nEscoja una opcion: ")
+#Escoger el archivo con el que se trabajara
 excelFile1=input("\nIngrese el archivo de Excel: ")
 excelFile="C:\\Users\\RUBEN\\Desktop\\"+excelFile1+".xlsx"
+#Escoger si queremos buscar todas las actuaciones (1) o solamente en los ultimos 4 dias (2)
 inicioBusqueda=input("\n1.Inicio\n2.Final\nDonde comenzará la busqueda en la pagina: ")
+#Escoger desde que linea se quiere comenzar a escribir en el excel
 filaExcel=input("\nEn que fila comenzará a introducir datos: ")
 
 
 
 class extractor(object):
     def __init__(self):
-        
-        
-        self.base_url = "https://procesos.ramajudicial.gov.co/procesoscs/"
-        self.delay = 5
+
+        #Escoger Firefox como Navegador
         if navegador == "1":
             self.driver = webdriver.Firefox()
+
+        #Escoger Chrome como Navegador
         elif navegador == "2":
-            #path_to_chromedriver = ('./chromedriver')
-            #self.driver = webdriver.Chrome(executable_path=r"chromedriver.exe")
-           # ser = Service("C:\\Users\\Guayara\\Desktop\\Extractor\\chromedriver.exe")
             op = webdriver.ChromeOptions()
             op.add_argument("--headless")
             op.add_argument("--disable-gpu")
@@ -60,15 +64,21 @@ class extractor(object):
             op.add_experimental_option("prefs",prefs) 
             self.driver= webdriver.Chrome("C:\\Users\\RUBEN\\Documents\\EXTRAERDIEGO\\chromedriver.exe", options=op)
             self.driver.get('https://something.com/login')
+
+        #Escoger Phantom como Navegador
         elif navegador == "3":
             self.driver = webdriver.PhantomJS('phantomjs.exe')
+        
+        #Escoger preferencias del WebDriver
+        self.base_url = "https://procesos.ramajudicial.gov.co/procesoscs/"
+        self.delay = 5
         self.driver.wait = WebDriverWait(self.driver, self.delay)
         self.driver.set_window_size(1024, 768)
         self.load_page()
-
+    
+    #Cargar la pagina solicitada
     def load_page(self):
         self.driver.get(self.base_url)
-        #self.driver.find_element_by_link_text("https://procesos.ramajudicial.gov.co/procesoscs/").click()
 
         def page_loaded(driver):
             path = '//select[@id="ddlCiudad"]'
@@ -78,22 +88,22 @@ class extractor(object):
         try:
             wait.until(page_loaded)
         except TimeoutException:
-            log_errors.write('line: 38 error: No se cargo la pagina, TimeoutException')
+            print('line: 38 error: No se cargo la pagina, TimeoutException')
 
+    #Encontrar TextBox de Ciudad
     def scrape_ciudad(self, laciudad):
         exito = True
-        # dropdown = self.driver.find_element(By.XPATH,'//*[@id="ddlCiudad"]')
-        # select_dropdown_option(self.driver, dropdown, laciudad)
         select = Select(self.driver.find_element(By.XPATH, '//*[@id="ddlCiudad"]'))
         select.select_by_visible_text(laciudad)
         wait = WebDriverWait(self.driver, self.delay)
         try:
             wait.until(lambda driver: driver.find_element(By.ID,'miVentana').is_displayed() == False)
         except TimeoutException:
-            log_errors.write('line: 50 error: No se termino la carga del Ajax de Ciudad, TimeoutException')
+            print('line: 50 error: No se termino la carga del Ajax de Ciudad, TimeoutException')
             exito = False
         return exito
 
+    #Saber si la Entidad esta activa
     def entidad_activa(self, locator, entidad, entidad_txt):
         activa = True
         cod_enti = entidad[5:9]
@@ -109,6 +119,7 @@ class extractor(object):
                         break
         return activa
 
+    #Encontrar TextBox de Entidad
     def scrape_entidad(self, laentidad, elradicado, datos):
         exito = True
         if WaitForElement(self, "//option[contains(.,'Seleccione la Corporación/Especialidad')]"):
@@ -124,7 +135,7 @@ class extractor(object):
                         self.driver.find_element(By.CSS_SELECTOR,
                             "div.inisideModal > table > tbody > tr > td > input[type=\"button\"]").click()
                     except ElementNotVisibleException:
-                        log_errors.write(
+                        print(
                             'line: 81 error: No esta el boton de cerrar la ventana de error para entidad, ElementNotVisibleException')
             else:
                 #print("inactiva")
@@ -135,6 +146,7 @@ class extractor(object):
             # guardar este error
         return exito
 
+    #Encontrar TextBox de Radicado
     def scrape_radicado(self, elradicado, datos, control):
         exito = True
         mns_error = ""
@@ -143,19 +155,18 @@ class extractor(object):
             self.driver.find_element(By.XPATH,"//input[@maxlength='23']").send_keys(elradicado)
         except ElementNotVisibleException:
             exito = False
-            log_errors.write('line: 102 error: Element is not currently visible and so may not be interacted with, ElementNotVisibleException')
+            print('line: 102 error: Element is not currently visible and so may not be interacted with, ElementNotVisibleException')
         
         #mover_slider(self)
         elema = self.driver.find_element(By.XPATH,"//div[@id='divNumRadicacion']/table/tbody/tr[3]/td/input")
 
         self.driver.execute_script('arguments[0].removeAttribute("disabled")', elema)
-        #self.driver.find_element(By.ID,"btnConsultarNum").click()
         self.driver.find_element(By.XPATH,"//div[@id='divNumRadicacion']/table/tbody/tr[3]/td/input").click()
         wait = WebDriverWait(self.driver, 60)
         try:
             wait.until(lambda driver: driver.find_element(By.ID,'miVentana').is_displayed() == False)
         except TimeoutException:
-            log_errors.write(
+            print(
                 'line: 98 error: No termino la carga del Ajax de Radicado: ' + elradicado + ', TimeoutException')
             exito = False
         if exists_by_xpath(self.driver, ".//*[@id='modalError' and contains(@style,'display: block')]"):
@@ -163,16 +174,16 @@ class extractor(object):
             mns_error = self.driver.find_element(By.XPATH,'//*[@id="msjError"]').text
             # si el error indica bloqueo comprobar
             if control == 1:
-                #print(mns_error)
                 datos.append(mns_error)
             try:
                 self.driver.find_element(By.XPATH,'//*[@id="modalError"]/div/table/tbody/tr/td/input').click()
             except ElementNotVisibleException:
-                log_errors.write(
+                print(
                     'line: 109 error: No se encuentra el boton de Cerrar de la ventana de error en radicado, ElementNotVisibleException')
         return exito
 
     def extraer_datos_actuaciones(self, datos, actos):
+
         if WaitForElement(self, "//*[@id='lblFechaSistema']"):
             fecharesult = self.driver.find_element(By.XPATH,"//*[@id='lblFechaSistema']").text
             if bool(fecharesult and fecharesult.strip()):
@@ -189,19 +200,42 @@ class extractor(object):
                 datos.append(self.driver.find_element(By.XPATH,".//*[@id='lblNomDemandante']").text)
                 datos.append(self.driver.find_element(By.XPATH,".//*[@id='lblNomDemandado']").text)
                 datos.append(self.driver.find_element(By.XPATH,".//*[@id='lblContenido']").text)
-                #table_actos = self.driver.find_element(By.XPATH,
-                #    ".//*[@id='divActuaciones']/div[3]/table[2]/tbody/tr[2]/td/table[1]/tbody")
+
                 table_actos = self.driver.find_element(By.XPATH,
                     "//*[@id='divActuacionesDetalle']/table/tbody/tr[2]/td/table/tbody")
-                allrows = table_actos.find_elements(By.TAG_NAME,"tr")[1:]
-                for tr in allrows:
-                    lista_td = []
-                    lista_td.append(i[2])
-                    allcols = tr.find_elements(By.TAG_NAME,"td")
-                    for j in range(len(allcols)):
-                        lista_td.append(allcols[j].text)
-                       # print(allcols[j].text)
-                    actos.append(lista_td)
+                
+                #Si la busqueda comienza desde abajo(final)
+                if inicioBusqueda == "2": 
+     
+                    
+                        allrows = table_actos.find_elements(By.TAG_NAME,"tr")[1:]
+
+                        
+                        for tr in allrows:
+                                lista_td = []
+                                lista_td.append(i[2])
+                                allcols = tr.find_elements(By.TAG_NAME,"td")
+                                fecha_str=allcols[0].text
+                                print(fecha_str)
+                                if fecha_str!="--" and dife_fecha(fecha_str).days <= 4:
+                                    for j in range(len(allcols)):
+                                        lista_td.append(allcols[j].text)
+                                    actos.append(lista_td)
+                else:
+
+                    allrows = table_actos.find_elements(By.TAG_NAME,"tr")[1:]
+                    for tr in allrows:
+                        lista_td = []
+                        lista_td.append(i[2])
+                        allcols = tr.find_elements(By.TAG_NAME,"td")
+                        for j in range(len(allcols)):
+                            lista_td.append(allcols[j].text)
+                            
+                        actos.append(lista_td)
+                        print(actos)
+
+
+
             else:
                 # la fecha de resultados esta vacia o no aparecen los resultados
                 datos.append("ERROR : No aparece resultado o fecha vacia")
@@ -214,13 +248,7 @@ class extractor(object):
             datos.append(i[0])
             datos.append(i[1])
             datos.append(i[2])
-        #self.driver.find_element(By.ID,"btnNuevaConsultaNum").click()
         self.load_page()
-        # try:
-        #    self.driver.find_element_by_link_text("INICIO").click()
-        #    #self.driver.find_element_by_link_text("https://procesos.ramajudicial.gov.co/procesoscs/").click()
-        # except ElementNotVisibleException:
-        #                 log_errors.write('line: 196 error: Hay un problema con la recarga al INICIO, ElementNotVisibleException')
 
     def final(self):
         self.driver.quit()
@@ -246,7 +274,6 @@ def exists_by_xpath(driver, xpath):
     return True
 
 def mover_slider(self):
-    # slider = self.driver.find_element(By.XPATH,"//*[@id='sliderBehaviorNumeroProceso_railElement']")
     slider = self.driver.find_element(By.XPATH,"//*[@id='sliderBehaviorNumeroProceso_handleImage']")
     action = ActionChains(self.driver)
     # action.move_to_element_with_offset(slider,60,0)
@@ -309,14 +336,8 @@ def escribir_xls(datosPro, actosPro):
     wb.sheet_by_name('INPUT').row += i
     wb.sheet_by_name('DATOS DEL PROCESO').row += datosPro
     for dats in actosPro:
-        #Si la busqueda comienza desde abajo(final)
-        if inicioBusqueda == "2":
-            fecha_str = dats[6]
-            if fecha_str!="--" and dife_fecha(fecha_str).days <= 4:
-                # comprobar el numero de dias para poder guardar el dato
-                wb.sheet_by_name('ACTUACIONES DEL PROCESO').row += dats
-        else:
-            wb.sheet_by_name('ACTUACIONES DEL PROCESO').row += dats
+        wb.sheet_by_name('ACTUACIONES DEL PROCESO').row += dats
+
     wb.save_as(fnametemp)
 
 def File_Existence(filepath):
@@ -332,31 +353,25 @@ def terminar():
     shutil.move(fnametemp, fname)
     print("Creado el archivo: " + fname)
 
+#CLASE PRINCIPAL
 if __name__ == "__main__":
-    # revisar que se cumplan los parametros
-   # if len(sys.argv) < 5:
-    #    print("\tUSO: python extractor.py [nombre_de_archivo.xlsx] inicial  'X' 'y' -->"
-     #   "Ejecuta el programa sin condicional de 4 dias\n\t      python extractor.py [nombre_de_archivo.xlsx] final 'X' 'y' -->"
-      # "Ejecuta el programa con condicional de 4 dias")
-       # print("\nReemplazar 'X' por F --> Firefox, C --> Chrome o P --> PhantomJS")
-        #print("\nReemplazar 'y' por el número de renglón del archivo de entrada para comenzar")
-        #sys.exit(1)
+   
     # revisar la existencia del archivo de datos .xlsx
-    
     if not (File_Existence(excelFile)):
         print("Revisar la existencia del archivo de datos: " + excelFile)
         msvcrt.getch()
         sys.exit(1)
+
+    #Indicar desde que fila en el excel se comenzara a escribir
     if (int(filaExcel) <= 0):
         fila_inicio = 1
     else:
         fila_inicio = int(filaExcel)
+
+    #Seleccionar si queremos buscar todas las actuaciones (1) o solamente en los ultimos 4 dias (2)
     if (inicioBusqueda == "1") or (inicioBusqueda == "2"):
-        # si los parametros corresponden entonces proceder con el programa
-        pathlog = './'
-        log_errors = open(pathlog + 'log_errors.txt', mode='w')
+
         w = extractor()
-        #print('> ' + str(datetime.today()))
         print('Ejecutando ...')
 
         t0 = time.time()
@@ -367,24 +382,22 @@ if __name__ == "__main__":
         crear_xls(wout)
         num_rad = 1
         for i in my_array:
-            #print(num_rad, " --> ", i)
             datosPro = []
             actosPro = []
-            # print("Ciudad: ", i[0]," Entidad: ", i[1], " Radicado: ", i[2])
+            # Ciudad: i[0] - Entidad: i[1] - Radicado: i[2]
             if w.scrape_ciudad(i[0]):
                 if w.scrape_entidad(i[1], i[2], i):
                     if w.scrape_radicado(i[2], i, 1):
-                        #print("listo")
                         # extraer los datos y actuaciones
                         w.extraer_datos_actuaciones(datosPro, actosPro)
                     else:
-                        #w.reload_page()
                         w.load_page()
                         if w.scrape_ciudad(i[0]):
                             if w.scrape_entidad(i[1], i[2], i):
                                 if w.scrape_radicado(i[2], i, 2):
-                                    #print("listo 2")
                                     # extraer los datos y actuaciones
+                                    print(i[2])
+                                    print(i)
                                     w.extraer_datos_actuaciones(datosPro, actosPro)
             # escribir los resultados en el archivo
             escribir_xls(datosPro, actosPro)
