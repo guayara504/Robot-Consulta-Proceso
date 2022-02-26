@@ -24,17 +24,17 @@ fnametemp = "temp_" + time.strftime("%d%m%Y%H%M%S") + ".xls"
 #Datos de entrada para el programa
 
 #Escoger el navegador para usar con WebDriver
-navegador=input("Seleccione el Navegador:\n1. Firefox\n2. Chrome\n3.Phantom\nEscoja una opcion: ")
+navegador=input("\n\nSeleccione el Navegador:\n1. Firefox\n2. Chrome\n3.Phantom\nEscoja una opcion: ")
 os.system ("cls")
 #Escoger los archivos con los que se trabajara
-inputFile=input("\nIngrese archivo(s) de Excel separado por comas: ")
+inputFile=input("\n\nIngrese archivo(s) de Excel separado por comas: ")
 listFile=listaArchivos=inputFile.split(",")
 os.system ("cls")
 #Escoger si queremos buscar todas las actuaciones (1) o solamente en los ultimos 4 dias (2)
-inicioBusqueda=input("\n1.Inicio\n2.Final\nDonde comenzará la busqueda en la pagina: ")
+inicioBusqueda=input("\n\n1.Inicio\n2.Final\nDonde comenzará la busqueda en la pagina: ")
 os.system ("cls")
 #Escoger desde que linea se quiere comenzar a escribir en el excel
-filaExcel=input("\nEn que fila comenzará a introducir datos: ")
+filaExcel=input("\n\nEn que fila comenzará a introducir datos: ")
 os.system ("cls")
 
 
@@ -212,7 +212,7 @@ class extractor(object):
                 if inicioBusqueda == "2": 
      
                     
-                        allrows = table_actos.find_elements(By.TAG_NAME,"tr")[1:]
+                        allrows = table_actos.find_elements(By.TAG_NAME,"tr")[1:5]
 
                         
                         for tr in allrows:
@@ -418,6 +418,7 @@ if __name__ == "__main__":
             print("Usar\n1.Inicio = para correr sin condicional de dias\n2.Final para condicional de dias")
             msvcrt.getch()
             sys.exit(1)
+        print("\n----------------------\n")  
     print("Presiona una tecla para cerrar")
     msvcrt.getch()
     sys.exit(1)
