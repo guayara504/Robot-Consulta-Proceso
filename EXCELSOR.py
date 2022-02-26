@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import msvcrt
+from re import L
 import shutil
 import sys
 import time
@@ -24,13 +25,17 @@ fnametemp = "temp_" + time.strftime("%d%m%Y%H%M%S") + ".xls"
 
 #Escoger el navegador para usar con WebDriver
 navegador=input("Seleccione el Navegador:\n1. Firefox\n2. Chrome\n3.Phantom\nEscoja una opcion: ")
-#Escoger el archivo con el que se trabajara
-excelFile1=input("\nIngrese el archivo de Excel: ")
-excelFile="C:\\Users\\RUBEN\\Desktop\\"+excelFile1+".xlsx"
+os.system ("cls")
+#Escoger los archivos con los que se trabajara
+inputFile=input("\nIngrese archivo(s) de Excel separado por comas: ")
+listFile=listaArchivos=inputFile.split(",")
+os.system ("cls")
 #Escoger si queremos buscar todas las actuaciones (1) o solamente en los ultimos 4 dias (2)
 inicioBusqueda=input("\n1.Inicio\n2.Final\nDonde comenzará la busqueda en la pagina: ")
+os.system ("cls")
 #Escoger desde que linea se quiere comenzar a escribir en el excel
 filaExcel=input("\nEn que fila comenzará a introducir datos: ")
+os.system ("cls")
 
 
 
@@ -63,7 +68,6 @@ class extractor(object):
             } 
             op.add_experimental_option("prefs",prefs) 
             self.driver= webdriver.Chrome("C:\\Users\\RUBEN\\Documents\\EXTRAERDIEGO\\chromedriver.exe", options=op)
-            self.driver.get('https://something.com/login')
 
         #Escoger Phantom como Navegador
         elif navegador == "3":
@@ -355,58 +359,65 @@ def terminar():
 
 #CLASE PRINCIPAL
 if __name__ == "__main__":
-   
-    # revisar la existencia del archivo de datos .xlsx
-    if not (File_Existence(excelFile)):
-        print("Revisar la existencia del archivo de datos: " + excelFile)
-        msvcrt.getch()
-        sys.exit(1)
+    
+    #Hacer esto con todos los archivos ingresados
+    for file in listFile:
+        excelFile="C:\\Users\\RUBEN\\Desktop\\"+file+".xlsx"
+        # revisar la existencia del archivo de datos .xlsx
+        if not (File_Existence(excelFile)):
+            print("Revisar la existencia del archivo de datos: " + excelFile)
+            msvcrt.getch()
+            sys.exit(1)
 
-    #Indicar desde que fila en el excel se comenzara a escribir
-    if (int(filaExcel) <= 0):
-        fila_inicio = 1
-    else:
-        fila_inicio = int(filaExcel)
+        #Indicar desde que fila en el excel se comenzara a escribir
+        if (int(filaExcel) <= 0):
+            fila_inicio = 1
+        else:
+            fila_inicio = int(filaExcel)
 
-    #Seleccionar si queremos buscar todas las actuaciones (1) o solamente en los ultimos 4 dias (2)
-    if (inicioBusqueda == "1") or (inicioBusqueda == "2"):
+        #Seleccionar si queremos buscar todas las actuaciones (1) o solamente en los ultimos 4 dias (2)
+        if (inicioBusqueda == "1") or (inicioBusqueda == "2"):
 
-        w = extractor()
-        print('Ejecutando ...')
+            w = extractor()
+            print('Ejecutando ...'+file)
 
-        t0 = time.time()
-        # extraer los datos del archivo de entrada
-        my_array = pyexcel.get_array(file_name=excelFile, start_row=fila_inicio)
-        # crear el archivo de output.xlsx
-        wout = xlwt.Workbook()
-        crear_xls(wout)
-        num_rad = 1
-        for i in my_array:
-            datosPro = []
-            actosPro = []
-            # Ciudad: i[0] - Entidad: i[1] - Radicado: i[2]
-            if w.scrape_ciudad(i[0]):
-                if w.scrape_entidad(i[1], i[2], i):
-                    if w.scrape_radicado(i[2], i, 1):
-                        # extraer los datos y actuaciones
-                        w.extraer_datos_actuaciones(datosPro, actosPro)
-                    else:
-                        w.load_page()
-                        if w.scrape_ciudad(i[0]):
-                            if w.scrape_entidad(i[1], i[2], i):
-                                if w.scrape_radicado(i[2], i, 2):
-                                    # extraer los datos y actuaciones
-                                    print(i[2])
-                                    print(i)
-                                    w.extraer_datos_actuaciones(datosPro, actosPro)
-            # escribir los resultados en el archivo
-            escribir_xls(datosPro, actosPro)
-            num_rad += 1
-        w.final()
-        terminar()
-        t1 = time.time() - t0
-        print("\ntiempo transcurrido %.2f s" % (t1))
-    else:
-        print("Usar\n1.Inicio = para correr sin condicional de dias\n2.Final para condicional de dias")
+            t0 = time.time()
+            # extraer los datos del archivo de entrada
+            my_array = pyexcel.get_array(file_name=excelFile, start_row=fila_inicio)
+            # crear el archivo de output.xlsx
+            wout = xlwt.Workbook()
+            crear_xls(wout)
+            num_rad = 1
+            for i in my_array:
+                datosPro = []
+                actosPro = []
+                # Ciudad: i[0] - Entidad: i[1] - Radicado: i[2]
+                if w.scrape_ciudad(i[0]):
+                    if w.scrape_entidad(i[1], i[2], i):
+                        if w.scrape_radicado(i[2], i, 1):
+                            # extraer los datos y actuaciones
+                            w.extraer_datos_actuaciones(datosPro, actosPro)
+                        else:
+                            w.load_page()
+                            if w.scrape_ciudad(i[0]):
+                                if w.scrape_entidad(i[1], i[2], i):
+                                    if w.scrape_radicado(i[2], i, 2):
+                                        # extraer los datos y actuaciones
+                                        print(i[2])
+                                        print(i)
+                                        w.extraer_datos_actuaciones(datosPro, actosPro)
+                # escribir los resultados en el archivo
+                escribir_xls(datosPro, actosPro)
+                num_rad += 1
+            w.final()
+            terminar()
+            t1 = time.time() - t0
+            print("Finalizado:", file)
+            print("\ntiempo transcurrido %.2f s" % (t1))
+        else:
+            print("Usar\n1.Inicio = para correr sin condicional de dias\n2.Final para condicional de dias")
+            msvcrt.getch()
+            sys.exit(1)
+        print("Presiona una tecla para cerrar")
         msvcrt.getch()
         sys.exit(1)
