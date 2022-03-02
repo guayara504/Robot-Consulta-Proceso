@@ -15,6 +15,7 @@ from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
+from webdriver_manager.chrome import ChromeDriverManager
 
 
 demora = 3
@@ -23,9 +24,6 @@ fnametemp = "temp_" + time.strftime("%d%m%Y%H%M%S") + ".xls"
 
 #Datos de entrada para el programa
 
-#Escoger el navegador para usar con WebDriver
-navegador=input("\n\nSeleccione el Navegador:\n1. Firefox\n2. Chrome\n3.Phantom\nEscoja una opcion: ")
-os.system ("cls")
 #Escoger los archivos con los que se trabajara
 inputFile=input("\n\nIngrese archivo(s) de Excel separado por comas: ")
 listFile=listaArchivos=inputFile.split(",")
@@ -42,12 +40,9 @@ os.system ("cls")
 class extractor(object):
     def __init__(self):
 
-        #Escoger Firefox como Navegador
-        if navegador == "1":
-            self.driver = webdriver.Firefox()
+
 
         #Escoger Chrome como Navegador
-        elif navegador == "2":
             op = webdriver.ChromeOptions()
             op.add_argument("--headless")
             op.add_argument("--disable-gpu")
@@ -67,18 +62,14 @@ class extractor(object):
             "perfil.managed_default_content_settings.media_stream":2, 
             } 
             op.add_experimental_option("prefs",prefs) 
-            self.driver= webdriver.Chrome("C:\\Users\\RUBEN\\Documents\\EXTRAERDIEGO\\chromedriver.exe", options=op)
-
-        #Escoger Phantom como Navegador
-        elif navegador == "3":
-            self.driver = webdriver.PhantomJS('phantomjs.exe')
+            self.driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()),options=op)
         
         #Escoger preferencias del WebDriver
-        self.base_url = "https://procesos.ramajudicial.gov.co/procesoscs/"
-        self.delay = 5
-        self.driver.wait = WebDriverWait(self.driver, self.delay)
-        self.driver.set_window_size(1024, 768)
-        self.load_page()
+            self.base_url = "https://procesos.ramajudicial.gov.co/procesoscs/"
+            self.delay = 5
+            self.driver.wait = WebDriverWait(self.driver, self.delay)
+            self.driver.set_window_size(1024, 768)
+            self.load_page()
     
     #Cargar la pagina solicitada
     def load_page(self):
