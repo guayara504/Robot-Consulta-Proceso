@@ -203,7 +203,7 @@ class extractor(object):
                 if inicioBusqueda == "2": 
      
                     
-                        allrows = table_actos.find_elements(By.TAG_NAME,"tr")[1:5]
+                        allrows = table_actos.find_elements(By.TAG_NAME,"tr")[1:7]
 
                         
                         for tr in allrows:
